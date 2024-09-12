@@ -1,6 +1,5 @@
 # Data
-data/*.dat
-data/*.png
+data/*
 
 # Prerequisites
 *.d
