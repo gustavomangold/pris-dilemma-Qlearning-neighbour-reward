@@ -58,9 +58,7 @@ const int STATES[NUM_STATES]   = {D, C};
 
 const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
-/****** Q-Learning paramteres **********/
-double        EPSILON	  = .02;//1.0;
-double        ALPHA_SHARE = 0;
+/****** Q-Learning parameteres **********/
 const double  EPSILON_MIN = 0.02;//0.1;
 //const double  EPS         = 1e-5;
 const double  LAMBDA      = 0.02;
@@ -70,12 +68,17 @@ const double  GAMMA       = 0.8;//0.75;
 /***************************************************************************
 *                      Variable Declarations                               *
 ***************************************************************************/
+
+/****** Q-Learning parameteres **********/
+double        EPSILON	  = .02;//1.0;
+double        ALPHA_SHARE = 0;
+
 const int L2   = LSIZE*LSIZE;
 
-unsigned long  right[LL],left[LL],top[LL],down[LL], neigh[LL][NUM_NEIGH];
-unsigned long  num_empty_sites,empty_matrix[LL],which_empty[LL];
 int            s[LL];
 float 		   payoff[LL];
+unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
+unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
 
 double		   Q[LL][NUM_STATES][NUM_ACTIONS];
 
