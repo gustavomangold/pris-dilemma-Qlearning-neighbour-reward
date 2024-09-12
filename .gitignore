@@ -1,3 +1,7 @@
+# Data
+data/*.dat
+data/*.png
+
 # Prerequisites
 *.d
 
