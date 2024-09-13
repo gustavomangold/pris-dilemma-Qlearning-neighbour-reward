@@ -36,8 +36,7 @@ number of the defects (holes) in the lattice, probability of succesfully moving 
 be passed as arguments to the executable.
 + **Q[LL][NUM_STATES][NUM_ACTIONS]** &#8594; Q table list, which will define a NUM_ACTIONS x NUM_STATES
 matrix for all the LL agents, i.e., LL entries in the list.
-+ number_coop_average[MEASURES], number_def_average[MEASURES],
-number_coop_to_def_average[MEASURES], average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS] &#8594; lists to be used as
++ **number_coop_average[MEASURES]**, **number_def_average[MEASURES]**, **number_coop_to_def_average[MEASURES]**, **average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS]** &#8594; lists to be used as
 averages through each measure.
 + **s[LL]**, **payoff[LL]** &#8594; contain all the states and the payoffs of the players and will be
 severely accessed through the simulation.
