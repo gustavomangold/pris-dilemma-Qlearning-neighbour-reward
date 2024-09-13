@@ -30,7 +30,7 @@
 
  const int INITIALSTATE   = 4;
 
- const double PROB_C	     = 0.5;
+ const double PROB_C	  = 0.5;
  const double PROB_D      = 1.0 - PROB_C;
 
  const int    TOTALSTEPS  = 20000;
@@ -47,15 +47,15 @@
  //Here we define the actions, then the states
  const int  C              =  1;
  const int  D              = -1;
- const int  MOVE			  =  0;
+ const int  MOVE		   =  0;
 
- const int Dindex  		 = 0;
- const int Cindex  		 = 1;
- const int MOVEindex      = 2;
+ const int  Dindex  	   = 0;
+ const int  Cindex  	   = 1;
+ const int  MOVEindex      = 2;
 
- #define NUM_STATES  	   2
+ #define NUM_STATES  	     2
 
- const int STATES[NUM_STATES]   = {D, C};
+ const int STATES[NUM_STATES] = {D, C};
 
  #ifdef DIFFUSE
  #define NUM_ACTIONS 	   3
@@ -70,7 +70,6 @@
 
  /****** Q-Learning parameteres **********/
  const double  EPSILON_MIN = 0.02;//0.1;
- //const double  EPS         = 1e-5;
  const double  LAMBDA      = 0.02;
  const double  ALPHA       = 0.75;//0.75;
  const double  GAMMA       = 0.8;//0.75;
@@ -82,8 +81,8 @@
  const int L2   = LSIZE*LSIZE;
 
  const float    SUCKER_PAYOFF = 0.0;
- const float    PP = 0.0;
- const float	   RR = 1.0;
+ const float    PUNISH_PAYOFF = 0.0;
+ const float	REWARD_PAYOFF = 1.0;
 
  float          TEMPTATION_PAYOFF;
 
@@ -94,7 +93,7 @@
  unsigned long  NUM_DEFECTS;
 
  /****** Q-Learning parameteres **********/
- double        EPSILON	  = .02;//1.0;
+ double        EPSILON	   = .02;//1.0;
  double        ALPHA_SHARE = 0;
 
  /***************************************************************************
@@ -383,9 +382,9 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 	double pay;
 	switch (ss)
 	{
-		case C: pay = RR*nc + SS*nd;
+		case C: pay = REWARD_PAYOFF*nc + SS*nd;
 				 break;
-		case D: pay = TT*nc + PP*nd;
+		case D: pay = TT*nc + PUNISH_PAYOFF*nd;
 				 break;
 		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n",ss, numsteps,nc,nd);
 				 exit(1);
@@ -406,9 +405,9 @@ double pd_payoff(int *s, int ss, int ii)
 
 	switch (ss)
 	{
-		case C: pay = RR * nc + SUCKER_PAYOFF * nd;
+		case C: pay = REWARD_PAYOFF * nc + SUCKER_PAYOFF * nd;
 				 break;
-		case D: pay = TEMPTATION_PAYOFF * nc + PP * nd;
+		case D: pay = TEMPTATION_PAYOFF * nc + PUNISH_PAYOFF * nd;
 				 break;
 		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n",ss, numsteps,nc,nd);
 				 exit(1);
@@ -707,7 +706,7 @@ void file_initialization(void)
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
 	fprintf(freq,"# TEMPTATION_PAYOFF = %5.3f\n", TEMPTATION_PAYOFF);
-	fprintf(freq,"# RR = %5.3f\n", RR);
+	fprintf(freq,"# REWARD_PAYOFF = %5.3f\n", REWARD_PAYOFF);
 	fprintf(freq,"# SUCKER_PAYOFF = %5.3f\n", SUCKER_PAYOFF);
 
 	fprintf(freq,"# rho = %.4f\n",1.0-NUM_DEFECTS/((float)L2));
