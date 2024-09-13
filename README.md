@@ -73,3 +73,30 @@ sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_CONF_%d_%ld_prof.dat
 
 The condition *#ifdef USEGFX* will then check if the flag is active to display the snapshots; if not,
 we finally initialize the simulation, calling the main function of the code, *simulation()*.
+In this function, we loop through configuration indexes, which will max out at the *NUM_CONF*,
+thus obtaining a number of independent samples, using the for loop:
+```
+for (config_index = 0; config_index < NUM_CONF; ++config_index){
+[...]
+}
+```
+Inside this loop, we first initialize the environment and the players, with the *initialization()*
+function. After this, a for loop is responsible for dealing with the number of measures, and a while
+loop bootstraps the *local_dynamics(s, empty_matrix, which_empty)*.
+The rest of the *simulation()* function then counts the outputs from the local dynamics and
+saves it to the file, using again the *fprintf()* function (file printing).
+Let us now take a closer look at the *local_dynamics(args)* function.
+
+## Local dynamics
+
+Inside this function, we complete a single Monte Carlo step, and thus it is where all the magic
+happens.
+After initializing all the local variables, such as the numbers of coop. and def. as well as the
+payoffs, we temporarily store all the initial states (in order to calculate how many cooperators
+turned to defectors and vice versa at the end of the mcs):
+```
+for (i = num_empty_sites; i < L2; ++i)
+		stemp[empty_matrix[i]] = s[empty_matrix[i]];
+```
+
+Then, the main loop of starts, where we
