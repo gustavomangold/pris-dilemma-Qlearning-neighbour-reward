@@ -68,6 +68,10 @@
 
  const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
+ const float    SUCKER_PAYOFF = 0.0;
+ const float    PUNISH_PAYOFF = 0.0;
+ const float	REWARD_PAYOFF = 1.0;
+
  /****** Q-Learning parameteres **********/
  const double  EPSILON_MIN = 0.02;//0.1;
  const double  LAMBDA      = 0.02;
@@ -77,12 +81,6 @@
  /***************************************************************************
  *                      Variable Declarations                               *
  ***************************************************************************/
-
- const int L2   = LSIZE*LSIZE;
-
- const float    SUCKER_PAYOFF = 0.0;
- const float    PUNISH_PAYOFF = 0.0;
- const float	REWARD_PAYOFF = 1.0;
 
  float          TEMPTATION_PAYOFF;
 
@@ -204,7 +202,7 @@ extern void simulation(void)
 				number_def_average[i]  += num_d;
 				number_coop_to_def_average[i] += num_cd+num_dc;
 
-				for (k = num_empty_sites; k < L2; ++k)
+				for (k = num_empty_sites; k < LL; ++k)
 				{
 					for(l = 0; l < NUM_STATES; ++l)
 						for(m = 0; m < NUM_ACTIONS; ++m)
@@ -212,7 +210,7 @@ extern void simulation(void)
 				}
 
 
-				if ((num_d == (L2-num_empty_sites)) || (num_c == (L2-num_empty_sites)))
+				if ((num_d == (LL-num_empty_sites)) || (num_c == (LL-num_empty_sites)))
 				{
 					for (j=i+1; j < MEASURES; ++j)
 					{
@@ -258,7 +256,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 {
 	int i;
 
-	for(i=0; i<L2; ++i)
+	for(i=0; i<LL; ++i)
 	{
 		neigh[i][0] = left[i];
 		neigh[i][1] = right[i];
@@ -496,7 +494,7 @@ void find_maximum_Q_value(int chosen_site, int state_index, int *maxQ_action, in
  ***************************************************************************/
 void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[L2];
+	int stemp[LL];
 	int i,j,chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
@@ -516,12 +514,12 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	total_payoff = 0;
 	total_reward = 0;
 
-	for (i=num_empty_sites; i < L2; ++i)
+	for (i=num_empty_sites; i < LL; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
-	for (j=0; j < L2; ++j)
+	for (j=0; j < LL; ++j)
     {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(L2-num_empty_sites));
+		chosen_index = (int)(num_empty_sites + FRANDOM1*(LL-num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
@@ -607,9 +605,9 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		} // if(s1!=0)
 	}
 
-	//printf("%f, %f\n", total_payoff / L2, total_reward / L2);
+	//printf("%f, %f\n", total_payoff / LL, total_reward / LL);
 
-	for (i=num_empty_sites; i< L2; ++i)
+	for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
 
@@ -698,18 +696,18 @@ void file_initialization(void)
 	int i,j,k;
 
 	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_CONF_%d_%ld_prof.dat",
-							TEMPTATION_PAYOFF,SUCKER_PAYOFF,LSIZE,1.0-NUM_DEFECTS/((float)L2),NUM_CONF,seed);
+							TEMPTATION_PAYOFF,SUCKER_PAYOFF,LSIZE,1.0-NUM_DEFECTS/((float)LL),NUM_CONF,seed);
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
-	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,L2);
+	fprintf(freq,"# Lattice: %d x %d = %d\n",LSIZE,LSIZE,LL);
 	fprintf(freq,"# Random seed: %ld\n",seed);
 	fprintf(freq,"# N_CONF = %d \n",NUM_CONF);
 	fprintf(freq,"# TEMPTATION_PAYOFF = %5.3f\n", TEMPTATION_PAYOFF);
 	fprintf(freq,"# REWARD_PAYOFF = %5.3f\n", REWARD_PAYOFF);
 	fprintf(freq,"# SUCKER_PAYOFF = %5.3f\n", SUCKER_PAYOFF);
 
-	fprintf(freq,"# rho = %.4f\n",1.0-NUM_DEFECTS/((float)L2));
+	fprintf(freq,"# rho = %.4f\n",1.0-NUM_DEFECTS/((float)LL));
 	fprintf(freq,"# Num defects = %ld \n",NUM_DEFECTS);
 	fprintf(freq,"# Initial prob(c) = %5.4f\n",PROB_C);
 	fprintf(freq,"# Initial prob(d) = %5.4f\n",PROB_D);
@@ -777,9 +775,9 @@ void initialization(void)
 
 	initial_state(s, LSIZE, INITIALSTATE, PROB_C, PROB_D);
 
-	num_empty_sites = empty_site(L2, s, empty_matrix, which_empty); //ja existia uma matriz which_empty
+	num_empty_sites = empty_site(LL, s, empty_matrix, which_empty); //ja existia uma matriz which_empty
 
-	for (i=0; i < L2; ++i)
+	for (i=0; i < LL; ++i)
     {
 		payoff[i] = 0.0;
 
