@@ -113,9 +113,9 @@ to its Q-table:
 
 ```
 if (FRANDOM1 < EPSILON) //random
-				random_choice(chosen_site, &new_action, &new_action_index);
-			else // greedy
-				find_maximum_Q_value(chosen_site, initial_s_index, &new_action, &new_action_index, &maxQ);
+	 random_choice(chosen_site, &new_action, &new_action_index);
+else // greedy
+	 find_maximum_Q_value(chosen_site, initial_s_index, &new_action, &new_action_index, &maxQ);
 ```
 **Note:** important to note that we are passing the addresses of several unitialized variables,
 so that we can alter their values inside the functions using the pointer addresses.
@@ -129,9 +129,9 @@ we update the state with *s[chosen_site] = new_action*, calculate the payoffs an
 ```
 double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
 
-				final_payoff = pd_payoff(s, new_action, chosen_site);
+	  final_payoff = pd_payoff(s, new_action, chosen_site);
 
-				reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
+	  reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
 ```
 
 The *pd_payoff(args)* function simply loops through the neighbours and calculate the payoff of each
@@ -173,15 +173,15 @@ Finally, if the returned value from the function is 1, we have moved, so we then
 
 ```
 if (moved) {
-					find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
+  	find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
-					double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
+  	double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
 
-					reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
+  	reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
 
-					Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
-											- Q[chosen_site][initial_s_index][new_action_index] );
-				}
+  	Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
+  							- Q[chosen_site][initial_s_index][new_action_index] );
+}
 ```
 
 Which computes the same values as we did in the player did not move, but now we compute it in the new
