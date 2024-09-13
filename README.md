@@ -42,5 +42,34 @@ averages through each measure.
 severely accessed through the simulation.
 + **right[LL]**, **left[LL]**, **top[LL]**, **down[LL]**, **neigh[LL][NUM_NEIGH]** &#8594; defines
 all the neighbours in each direction for every player, with the __neigh__ list containing all of them.
-+ &#8594;
-+ &#8594;
++ **empty_matrix[LL]**, **which_empty[LL]** &#8594; will account for the empty spaces in the lattice.
+
+# Functions and code funcionality
+
+The **main** function is (clearly) first called. After doing a check that all arguments are rightly
+passed (with no check for not a number or such, as this is expected from you to get right), we
+generate a random seed and creating a time table, determining with it which steps will be measured
+and saved, we call the __neighbours_2d__ function from __mc.h__, which gets the nearest neighbours
+in the left, right, ..., lists, then calling __determine_neighbours__, which fills the **neigh[LL]**
+list with neighbours, as such:
+
+```
+for(i=0; i<LL; ++i)
+	{
+		neigh[i][0] = left[i];
+		neigh[i][1] = right[i];
+		neigh[i][2] = top[i];
+		neigh[i][3] = down[i];
+	}
+```
+
+With the neighbours determined for each player, we then initialize the file, which will function as a
+sort of database, writing in a .dat with the name given by:
+
+```
+sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_CONF_%d_%ld_prof.dat",
+							TEMPTATION_PAYOFF,SUCKER_PAYOFF,LSIZE,1.0-NUM_DEFECTS/((float)LL),NUM_CONF,seed);
+```
+
+The condition __#ifdef USEGFX__ will then check if the flag is active to display the snapshots; if not,
+we finally initialize the simulation, calling the main function of the code, __simulation()__.

@@ -641,7 +641,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 int main(int argc, char **argv)
 {
     #ifdef DIFFUSE
-    	if (argc!=5)
+    	if (argc != 5)
     	{
     		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and ALPHA_SHARE\n");
     		exit(1);
@@ -654,7 +654,7 @@ int main(int argc, char **argv)
             ALPHA_SHARE       = atof(argv[4]);
     	}
 	#else
-    	if (argc!=4)
+    	if (argc != 4)
     	{
     		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and ALPHA_SHARE \n");
     		exit(1);
