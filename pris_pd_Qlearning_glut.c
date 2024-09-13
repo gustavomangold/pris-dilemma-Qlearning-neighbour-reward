@@ -35,8 +35,8 @@
 
  const int    TOTALSTEPS  = 20000;
 
- #define MEASURES   1000
- #define	NUM_NEIGH  4
+ #define    MEASURES   1000
+ #define    NUM_NEIGH  4
 
  #define FRANDOM1   (gsl_rng_uniform(r))
 
@@ -47,7 +47,7 @@
  //Here we define the actions, then the states
  const int  C              =  1;
  const int  D              = -1;
- const int  MOVE		   =  0;
+ const int  MOVE           =  0;
 
  const int  Dindex  	   = 0;
  const int  Cindex  	   = 1;
@@ -93,20 +93,20 @@
  unsigned long  NUM_DEFECTS;
 
  /****** Q-Learning parameteres **********/
- double        EPSILON	   = .02;//1.0;
- double        ALPHA_SHARE = 0;
+ double         EPSILON	    = .02;//1.0;
+ double         ALPHA_SHARE = 0;
 
  /***************************************************************************
  *                      List Variable Declarations                          *
  ***************************************************************************/
 
- double		   Q[LL][NUM_STATES][NUM_ACTIONS];
+ double         Q[LL][NUM_STATES][NUM_ACTIONS];
  double         number_coop_average[MEASURES], number_def_average[MEASURES], number_coop_to_def_average[MEASURES];
  double         average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS];
 
  int            s[LL];
 
- float 		   payoff[LL];
+ float          payoff[LL];
 
  long           t[MEASURES];
  unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
