@@ -1,124 +1,146 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
-#include <mc.h>
-
-#include "glut_view_pd_best.h"
-
-#include <time.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
-
 /***************************************************************************
- *                          Constant Declarations                           *
+ *                 Prisoner's dilemma with Q-learning                      *
+ *                      reward sharing version                             *
+ *                                                                         *
+ *    For the documentation and description of functions and variables,    *
+ *    please read the README.md                                            *
+ *                                                                         *
+ *    Code written by: Mendeli Vanstein and Gustavo Mangold                *
  ***************************************************************************/
-const int NUM_CONF       = 10;
-#define   LSIZE           100 //200           /*lattice size*/
-#define   LL              (LSIZE*LSIZE)   	/*number of sites*/
 
-const int INITIALSTATE   = 4;               		  /*1:random 2:one D 3:D-block 4: exact 5
-													5: 2C's */
-const double PROB_C	     = 0.5;//(0.3333) //0.4999895//(1.0/3.0)                 /*initial fraction of cooperators*/
-const double PROB_D      = 1.0 - PROB_C; //PROB_C       		  	  /*initial fraction of defectors*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <math.h>
 
-const int    TOTALSTEPS  = 20000; //100000				      /*total number of generations (MCS)*/
+ #include <mc.h>
 
-#define MEASURES   1000
-#define	NUM_NEIGH  4
+ #include "glut_view_pd_best.h"
 
-#define FRANDOM1   (gsl_rng_uniform(r))
+ #include <time.h>
+ #include <gsl/gsl_rng.h>
+ #include <gsl/gsl_randist.h>
 
-//#define USEGFX
-//#define SELF_INTERACTION
-//#define DIFFUSE
 
-//Here we define the actions, then the states
-const int  C              =  1;
-const int  D              = -1; //#define D (-1)
-const int  MOVE			  =  0;
+ /***************************************************************************
+  *                          Constant Declarations                           *
+  ***************************************************************************/
+ const int NUM_CONF       = 10;
+ #define   LSIZE           100 //200
+ #define   LL              (LSIZE*LSIZE)
 
-const int Dindex  		 = 0;
-const int Cindex  		 = 1;
-const int MOVEindex      = 2;
+ const int INITIALSTATE   = 4;
 
-#define NUM_STATES  	   2
+ const double PROB_C	     = 0.5;
+ const double PROB_D      = 1.0 - PROB_C;
 
-const int STATES[NUM_STATES]   = {D, C};
+ const int    TOTALSTEPS  = 20000;
 
-#ifdef DIFFUSE
-#define NUM_ACTIONS 	   3
+ #define MEASURES   1000
+ #define	NUM_NEIGH  4
+
+ #define FRANDOM1   (gsl_rng_uniform(r))
+
+ //#define USEGFX
+ //#define SELF_INTERACTION
+ //#define DIFFUSE
+
+ //Here we define the actions, then the states
+ const int  C              =  1;
+ const int  D              = -1;
+ const int  MOVE			  =  0;
+
+ const int Dindex  		 = 0;
+ const int Cindex  		 = 1;
+ const int MOVEindex      = 2;
+
+ #define NUM_STATES  	   2
+
+ const int STATES[NUM_STATES]   = {D, C};
+
+ #ifdef DIFFUSE
+ #define NUM_ACTIONS 	   3
 	const int ACTIONS[NUM_ACTIONS] = {D, C, MOVE};
 
-#else
-#define NUM_ACTIONS 	   2
+ #else
+ #define NUM_ACTIONS 	   2
 	const int ACTIONS[NUM_ACTIONS] = {D, C};
-#endif
+ #endif
 
-const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
+ const int STATE_INDEX[NUM_STATES] = {Dindex, Cindex};
 
-/****** Q-Learning parameteres **********/
-const double  EPSILON_MIN = 0.02;//0.1;
-//const double  EPS         = 1e-5;
-const double  LAMBDA      = 0.02;
-const double  ALPHA       = 0.75;//0.75;
-const double  GAMMA       = 0.8;//0.75;
+ /****** Q-Learning parameteres **********/
+ const double  EPSILON_MIN = 0.02;//0.1;
+ //const double  EPS         = 1e-5;
+ const double  LAMBDA      = 0.02;
+ const double  ALPHA       = 0.75;//0.75;
+ const double  GAMMA       = 0.8;//0.75;
 
-/***************************************************************************
-*                      Variable Declarations                               *
-***************************************************************************/
+ /***************************************************************************
+ *                      Variable Declarations                               *
+ ***************************************************************************/
 
-/****** Q-Learning parameteres **********/
-double        EPSILON	  = .02;//1.0;
-double        ALPHA_SHARE = 0;
+ const int L2   = LSIZE*LSIZE;
 
-const int L2   = LSIZE*LSIZE;
+ const float    SUCKER_PAYOFF = 0.0;
+ const float    PP = 0.0;
+ const float	   RR = 1.0;
 
-int            s[LL];
-float 		   payoff[LL];
-unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
-unsigned long  num_empty_sites, empty_matrix[LL], which_empty[LL];
+ float          TEMPTATION_PAYOFF;
 
-double		   Q[LL][NUM_STATES][NUM_ACTIONS];
+ double         P_DIFFUSION;
 
-unsigned long  seed,numsteps,num_c,num_cd,num_dc,num_d;
-long           t[MEASURES];
-double         number_coop_average[MEASURES], number_def_average[MEASURES], number_coop_to_def_average[MEASURES];
-double         average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS];
-float          TEMPTATION_PAYOFF;
-const float    SUCKER_PAYOFF = 0.0;
-const float    PP = 0.0;
-const float	   RR = 1.0;
-unsigned long  NUM_DEFECTS;
-double         P_DIFFUSION;
+ unsigned long  num_empty_sites;
+ unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
+ unsigned long  NUM_DEFECTS;
 
-FILE           *freq,*fconf;
+ /****** Q-Learning parameteres **********/
+ double        EPSILON	  = .02;//1.0;
+ double        ALPHA_SHARE = 0;
 
-unsigned long int rseed;
-const gsl_rng_type * T;
-gsl_rng * r;
+ /***************************************************************************
+ *                      List Variable Declarations                          *
+ ***************************************************************************/
+
+ double		   Q[LL][NUM_STATES][NUM_ACTIONS];
+ double         number_coop_average[MEASURES], number_def_average[MEASURES], number_coop_to_def_average[MEASURES];
+ double         average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS];
+
+ int            s[LL];
+
+ float 		   payoff[LL];
+
+ long           t[MEASURES];
+ unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
+ unsigned long  empty_matrix[LL], which_empty[LL];
+
+ FILE           *freq, *fconf;
+
+ unsigned long int rseed;
+ const gsl_rng_type * T;
+ gsl_rng * r;
 
 /***************************************************************************
 *                           Function Declarations                          *
 ***************************************************************************/
-void file_initialization(void);
-void initialization(void);
-void local_dynamics(int *s,  unsigned long *empty_matrix,unsigned long *which_emp);
-void count_neighbours(int *s, int ii, int *nc, int *nd);
+void file_initialization (void);
+void initialization      (void);
+void local_dynamics      (int *s,  unsigned long *empty_matrix,unsigned long *which_emp);
+void count_neighbours    (int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
-void initial_state(int *s, int lsize, int initialstate, double probc, double probd);
+void initial_state       (int *s, int lsize, int initialstate, double probc, double probd);
 
-//double calculate_payoff(int SUCKER_PAYOFF, int nc, int nd);
+//double calculate_payoff        (int SUCKER_PAYOFF, int nc, int nd);
 double get_mean_neighbours_payoff(float *payoff, int *s, int index);
-double pd_payoff(int *s, int SUCKER_PAYOFF, int ii);
-//void dynamics (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
+double pd_payoff                 (int *s, int SUCKER_PAYOFF, int ii);
+//void dynamics                  (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
 
 
 unsigned long empty_site(unsigned long ll, int *nn,
                          unsigned long *empty_matrix, unsigned long *which_empty);
+
 void update_empty_sites(unsigned long s1, unsigned long s2,
                         unsigned long *which_empty, unsigned long *empty_matrix);
+
 int odd(int x);
 
 
