@@ -89,7 +89,7 @@ Let us now take a closer look at the *local_dynamics(args)* function.
 
 ## Local dynamics
 
-Inside this function, we complete a single Monte Carlo step, and thus it is where all the magic
+Inside this function, we compute a single Monte Carlo step, and thus it is where all the magic
 happens.
 After initializing all the local variables, such as the numbers of coop. and def. as well as the
 payoffs, we temporarily store all the initial states (in order to calculate how many cooperators
@@ -99,4 +99,45 @@ for (i = num_empty_sites; i < L2; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 ```
 
-Then, the main loop of starts, where we
+Then, the main loop of starts, where for each step we start by sampling a player at random and
+then getting its site and state:
+```
+chosen_index = (int)(num_empty_sites + FRANDOM1*(LL-num_empty_sites));
+		chosen_site  = empty_matrix[chosen_index];
+
+		initial_s = s[chosen_site];
+```
+After, we check if the state is not 0, as the 0 state is defined as a hole. Inside this if statement,
+another sampling is made to decide if the player will make the decision at random or according
+to its Q-table:
+
+```
+if (FRANDOM1 < EPSILON) //random
+				random_choice(chosen_site, &new_action, &new_action_index);
+			else // greedy
+				find_maximum_Q_value(chosen_site, initial_s_index, &new_action, &new_action_index, &maxQ);
+```
+**Note:** important to note that we are passing the addresses of several unitialized variables,
+so that we can alter their values inside the functions using the pointer addresses.
+
+The *find_maximum_Q_value(args)* function simply loops through the Q-table values and returns the
+action associated with the maximum value and the corresponding maximum value, e.g., maxQ.
+Then, we update the state with *s[chosen_site] = new_action*, calculate the payoffs and obtain the
+reward:
+
+```
+double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
+
+				final_payoff = pd_payoff(s, new_action, chosen_site);
+
+				reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
+```
+
+The *pd_payoff(args)* function simply loops through the neighbours and calculate the payoff of each
+interaction, summing it all, while the *get_mean_neighbours_payoff(args)* calls the *pd_payoff(args)*
+for each of the player's neighbours.
+Then, we update the Q-table according to the known formula:
+```
+Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
+										- Q[chosen_site][initial_s_index][new_action_index]);
+```
