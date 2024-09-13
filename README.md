@@ -5,6 +5,17 @@ different situations in which agents learn independently to play a spatial priso
 an environment with defects, each with their own Q-table, then composing a multi-agent reinforcement learning framework,
 but with single agent characteristics.
 
+It should ideally be compiled with:
+```
+gcc  -Wall -O3 -DDIFFUSE -DUSEGFX -I ~/include -o "pris_pd_Qlearning_glut"
+"pris_pd_Qlearning_glut.c" -lglut -lGL -lGLU  -lm -lgsl -lgslcblas
+```
+
+and ran with:
+
+```
+./pris_pd_Qlearning_glut TEMPTATION DEFECTS PROB_DIFFUSION ALPHA_SHARE
+```
 # Variables and constants
 
 + **NUM_CONF**, **LSIZE**  &#8594; number of independent samples and lattice size.
