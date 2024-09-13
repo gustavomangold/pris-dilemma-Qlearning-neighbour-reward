@@ -122,8 +122,9 @@ so that we can alter their values inside the functions using the pointer address
 
 The *find_maximum_Q_value(args)* function simply loops through the Q-table values and returns the
 action associated with the maximum value and the corresponding maximum value, e.g., maxQ.
-Then, we update the state with *s[chosen_site] = new_action*, calculate the payoffs and obtain the
-reward:
+
+If the action chosen in the if statement *if (new_action_index != MOVEindex)* is not moving,
+we update the state with *s[chosen_site] = new_action*, calculate the payoffs and obtain the reward:
 
 ```
 double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
@@ -141,3 +142,47 @@ Then, we update the Q-table according to the known formula:
 Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
 										- Q[chosen_site][initial_s_index][new_action_index]);
 ```
+
+In the other hand, if the decision corresponds to *MOVEindex*, we perform a random diffusion when
+calling the function _int rand_diffusion(args)_.
+
+## rand_diffusion
+
+```
+int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matrix,unsigned long *which_empty)
+{
+	int    i, j, k, s2;
+	double temp = FRANDOM1;
+
+	if (temp < p_diffusion)
+    {
+    [...]
+    }
+```
+
+which checks if the sampled number is less than the probability of diffusion, that is, samples if
+the player will succesfully move or not, then trying to move to a neighbouring site.
+Also, if that site is not empty, that is, the sampled site *s2 = neigh[*s1][i] != 0*, the player
+will not successfully move.
+
+If it does move, all the information of the empty site s2 is exchanged with our focal player s1,
+including it's position. That is, we transform our original site in an empty site and copy
+the information of it to the previously empty one.
+
+Finally, if the returned value from the function is 1, we have moved, so we then run this:
+
+```
+if (moved) {
+					find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
+
+					double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
+
+					reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
+
+					Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
+											- Q[chosen_site][initial_s_index][new_action_index] );
+				}
+```
+
+Which computes the same values as we did in the player did not move, but now we compute it in the new
+site, with new neighbours.

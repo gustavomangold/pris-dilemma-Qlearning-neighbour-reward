@@ -528,8 +528,6 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		{
 			initial_s_index = (initial_s == C ? Cindex : Dindex);
 
-			//double initial_payoff  = pd_payoff(s, initial_s, chosen_site);
-
 			if (FRANDOM1 < EPSILON) //random
 				random_choice(chosen_site, &new_action, &new_action_index);
 			else // greedy
