@@ -41,7 +41,7 @@ averages through each measure.
 + **s[LL]**, **payoff[LL]** &#8594; contain all the states and the payoffs of the players and will be
 severely accessed through the simulation.
 + **right[LL]**, **left[LL]**, **top[LL]**, **down[LL]**, **neigh[LL][NUM_NEIGH]** &#8594; defines
-all the neighbours in each direction for every player, with the __neigh__ list containing all of them.
+all the neighbours in each direction for every player, with the *neigh* list containing all of them.
 + **empty_matrix[LL]**, **which_empty[LL]** &#8594; will account for the empty spaces in the lattice.
 
 # Functions and code funcionality
@@ -49,8 +49,8 @@ all the neighbours in each direction for every player, with the __neigh__ list c
 The **main** function is (clearly) first called. After doing a check that all arguments are rightly
 passed (with no check for not a number or such, as this is expected from you to get right), we
 generate a random seed and creating a time table, determining with it which steps will be measured
-and saved, we call the __neighbours_2d__ function from __mc.h__, which gets the nearest neighbours
-in the left, right, ..., lists, then calling __determine_neighbours__, which fills the **neigh[LL]**
+and saved, we call the *neighbours_2d* function from *mc.h*, which gets the nearest neighbours
+in the left, right, ..., lists, then calling *determine_neighbours*, which fills the **neigh[LL]**
 list with neighbours, as such:
 
 ```
@@ -71,5 +71,5 @@ sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_CONF_%d_%ld_prof.dat
 							TEMPTATION_PAYOFF,SUCKER_PAYOFF,LSIZE,1.0-NUM_DEFECTS/((float)LL),NUM_CONF,seed);
 ```
 
-The condition __#ifdef USEGFX__ will then check if the flag is active to display the snapshots; if not,
-we finally initialize the simulation, calling the main function of the code, __simulation()__.
+The condition *#ifdef USEGFX* will then check if the flag is active to display the snapshots; if not,
+we finally initialize the simulation, calling the main function of the code, *simulation()*.
