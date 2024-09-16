@@ -182,7 +182,7 @@ extern void simulation(void)
 
 			for (i = 0; i < MEASURES; ++i)
 			{
-				EPSILON          = 1.;
+				EPSILON = 1.;
 				while (numsteps <= t[i])
 				{
 					epsilon_to_decay = EPSILON * exp(-LAMBDA * numsteps);
@@ -191,7 +191,6 @@ extern void simulation(void)
 					   EPSILON = epsilon_to_decay;
 					}
 
-					//EPSILON = (epsilon_test <= EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, empty_matrix, which_empty);
 
 					++numsteps;
@@ -207,10 +206,9 @@ extern void simulation(void)
 							average_Q_table[i][l][m] += Q[empty_matrix[k]][l][m];
 				}
 
-
-				if ((num_d == (LL-num_empty_sites)) || (num_c == (LL-num_empty_sites)))
+				if ((num_d == (LL - num_empty_sites)) || (num_c == (LL - num_empty_sites)))
 				{
-					for (j=i+1; j < MEASURES; ++j)
+					for (j = i+1; j < MEASURES; ++j)
 					{
 						number_coop_average[j]        += num_c;
 						number_def_average[j]         += num_d;
@@ -225,22 +223,23 @@ extern void simulation(void)
 			}
 		}
 
-		for(i=0;i<MEASURES;++i)
+		for(i = 0; i < MEASURES; ++i)
 		{
 			number_coop_average[i]        /= NUM_CONF;
 			number_def_average[i]         /= NUM_CONF;
 			number_coop_to_def_average[i] /= NUM_CONF;
 
-			for(l=0; l<NUM_STATES; ++l)
-				for(m=0; m<NUM_ACTIONS; ++m)
+			for(l = 0; l < NUM_STATES; ++l)
+				for(m = 0; m < NUM_ACTIONS; ++m)
 					average_Q_table[i][l][m] /= NUM_CONF;
 
-			fprintf(freq,"%ld %.6f %.6f %.6f ",t[i],number_coop_average[i],number_def_average[i],
+			fprintf(freq, "%ld %.6f %.6f %.6f ", t[i], number_coop_average[i], number_def_average[i],
 			        number_coop_to_def_average[i]);
-			for(l=0; l<NUM_STATES; ++l)
-				for(m=0; m<NUM_ACTIONS; ++m)
-					fprintf(freq,"%.6f ", average_Q_table[i][l][m]);
-			fprintf(freq,"\n");
+
+			for(l = 0; l < NUM_STATES; ++l)
+				for(m = 0; m < NUM_ACTIONS; ++m)
+					fprintf(freq, "%.6f ", average_Q_table[i][l][m]);
+			fprintf(freq, "\n");
 		}
 		fclose(freq);
 
@@ -254,7 +253,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 {
 	int i;
 
-	for(i=0; i<LL; ++i)
+	for(i = 0; i < LL; ++i)
 	{
 		neigh[i][0] = left[i];
 		neigh[i][1] = right[i];
@@ -275,16 +274,14 @@ double get_mean_neighbours_payoff(float *payoff, int *s, int index){
 
     for (k=0; k < NUM_NEIGH; ++k)
 	{
-	    // any integer is true, 0 is false, so this is equivalent to
-		// if (s[neigh[index][k]] != 0){ [...] }
-        if (s[neigh[index][k]])
+        if (s[neigh[index][k]] != 0)
 		{
 			total_payoff += pd_payoff(s, s[neigh[index][k]], neigh[index][k]);
 			total_players++;
 		}
      }
 
-    if (total_players) {
+    if (total_players != 0) {
         return total_payoff / total_players;
     }
 
@@ -298,11 +295,10 @@ double get_mean_neighbours_payoff(float *payoff, int *s, int index){
 int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matrix,unsigned long *which_empty)
 {
 	int    i, j, k, s2;
-	double temp = FRANDOM1;
 
-	if (temp < p_diffusion)
+	if (FRANDOM1 < p_diffusion)
     {
-		i    = (int)((double)(NUM_NEIGH) * FRANDOM1);  // choose random direction
+		i    = (int)((double)(NUM_NEIGH) * FRANDOM1); // choose random direction
 		s2   = neigh[*s1][i];
 
 		if (! s[s2]) // test if chosen direction is empty, !0 = 1
@@ -313,9 +309,9 @@ int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matri
 			payoff[s2]  = payoff[*s1]; // Change payoffs
 			payoff[*s1] = 0.0;
 
-			for(j=0; j<NUM_STATES;++j) // Change Q values
+			for(j = 0; j < NUM_STATES; ++j) // Change Q values
 			{
-				for(k=0; k<NUM_ACTIONS;++k)
+				for(k = 0; k < NUM_ACTIONS; ++k)
 				{
 					Q[s2][j][k] = Q[*s1][j][k];
 					Q[*s1][j][k] = 0.0;

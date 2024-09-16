@@ -17,7 +17,6 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-
     plt.xlabel(r'$b$')
     plt.ylabel(r'$s_r$')
 
