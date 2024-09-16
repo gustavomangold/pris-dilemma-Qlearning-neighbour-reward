@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 10;
+ const int NUM_CONF       = 1;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -33,7 +33,7 @@
  const double PROB_C	  = 0.5;
  const double PROB_D      = 1.0 - PROB_C;
 
- const int    TOTALSTEPS  = 20000;
+ const int    TOTALSTEPS  = 5000;
 
  #define    MEASURES   1000
  #define    NUM_NEIGH  4
@@ -121,16 +121,13 @@
 ***************************************************************************/
 void file_initialization (void);
 void initialization      (void);
-void local_dynamics      (int *s,  unsigned long *empty_matrix,unsigned long *which_emp);
+void local_dynamics      (int *s, unsigned long *empty_matrix, unsigned long *which_emp);
 void count_neighbours    (int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state       (int *s, int lsize, int initialstate, double probc, double probd);
 
-//double calculate_payoff        (int SUCKER_PAYOFF, int nc, int nd);
 double get_mean_neighbours_payoff(float *payoff, int *s, int index);
-double pd_payoff                 (int *s, int SUCKER_PAYOFF, int ii);
-//void dynamics                  (int *s, float *payoff,unsigned long *empty_matrix,unsigned long *which_emp);
-
+double pd_payoff                 (int *s, int state, int ii);
 
 unsigned long empty_site(unsigned long ll, int *nn,
                          unsigned long *empty_matrix, unsigned long *which_empty);
@@ -193,6 +190,7 @@ extern void simulation(void)
 					if (epsilon_to_decay > EPSILON_MIN){
 					   EPSILON = epsilon_to_decay;
 					}
+
 					//EPSILON = (epsilon_test <= EPSILON_MIN ? epsilon_test : EPSILON_MIN);
 					local_dynamics(s, empty_matrix, which_empty);
 
@@ -229,8 +227,8 @@ extern void simulation(void)
 
 		for(i=0;i<MEASURES;++i)
 		{
-			number_coop_average[i]  /= NUM_CONF;
-			number_def_average[i]   /= NUM_CONF;
+			number_coop_average[i]        /= NUM_CONF;
+			number_def_average[i]         /= NUM_CONF;
 			number_coop_to_def_average[i] /= NUM_CONF;
 
 			for(l=0; l<NUM_STATES; ++l)
@@ -275,25 +273,21 @@ double get_mean_neighbours_payoff(float *payoff, int *s, int index){
     double total_payoff  = 0;
     double total_players = 0;
 
-    //printf("\n\ninitial: %d\n", index);
-
-    for (k=0; k < NUM_NEIGH ;++k)
+    for (k=0; k < NUM_NEIGH; ++k)
 	{
-        if (s[neigh[index][k]] != 0)
+	    // any integer is true, 0 is false, so this is equivalent to
+		// if (s[neigh[index][k]] != 0){ [...] }
+        if (s[neigh[index][k]])
 		{
 			total_payoff += pd_payoff(s, s[neigh[index][k]], neigh[index][k]);
 			total_players++;
-
-			//printf("neigh-initial: %ld\n", neigh[index][k]);
 		}
-		//printf("%d\n", action_list[neigh[index][k]]);
      }
 
-    //printf("\n\n");
-
-    if (total_players != 0){
+    if (total_players) {
         return total_payoff / total_players;
     }
+
     return 0;
 
 }
@@ -308,13 +302,12 @@ int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matri
 
 	if (temp < p_diffusion)
     {
-		temp = FRANDOM1;
-		i    = (int)((double)(NUM_NEIGH)*temp);  // choose random direction
+		i    = (int)((double)(NUM_NEIGH) * FRANDOM1);  // choose random direction
 		s2   = neigh[*s1][i];
 
-		if (s[s2] == 0) // test if chosen direction is empty
+		if (! s[s2]) // test if chosen direction is empty, !0 = 1
 		{
-			s[s2] = s[*s1]; // Change strategy
+			s[s2]  = s[*s1]; // Change strategy
 			s[*s1] = 0;
 
 			payoff[s2]  = payoff[*s1]; // Change payoffs
@@ -330,7 +323,7 @@ int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matri
 			}
 			/*s1=empty_matrix[j]; neighborhood --> no-empty*/
 			/*s2=j;  site --> empty*/
-			update_empty_sites(*s1,s2, which_empty, empty_matrix); // emp ---> empty_matrix
+			update_empty_sites(*s1, s2, which_empty, empty_matrix); // emp ---> empty_matrix
 
 			*s1 = s2; // Change position
 
@@ -359,10 +352,9 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
 	}
 #endif
 
-   for (k=0; k<NUM_NEIGH ;++k)
+   for (k = 0; k < NUM_NEIGH; ++k)
 	{
-	   //printf("%ld\n", neigh[ii][k]);
-       switch(s[neigh[ii][k]])
+       switch (s[neigh[ii][k]])
 		{
 			case  C: ++(*nc);
 				break;
@@ -372,46 +364,27 @@ void count_neighbours(int *s, int ii, int *nc, int *nd)
     }
    return;
  }
-/***************************************************************************
- *                           Payoffs                                       *
- ***************************************************************************/
-/*double calculate_payoff(int ss, int nc, int nd)
-{
-	double pay;
-	switch (ss)
-	{
-		case C: pay = REWARD_PAYOFF*nc + SS*nd;
-				 break;
-		case D: pay = TT*nc + PUNISH_PAYOFF*nd;
-				 break;
-		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n",ss, numsteps,nc,nd);
-				 exit(1);
-				 break;
-	}
 
-	return pay;
-}*/
 /***************************************************************************
  *                    Prisoner's Dilemma Payoffs                           *
  ***************************************************************************/
-double pd_payoff(int *s, int ss, int ii)
+double pd_payoff(int *s, int state, int ii)
 {
 	int nc, nd;
 	double pay = 0.0;
 
 	count_neighbours(s, ii, &nc, &nd);
 
-	switch (ss)
+	switch (state)
 	{
 		case C: pay = REWARD_PAYOFF * nc + SUCKER_PAYOFF * nd;
 				 break;
 		case D: pay = TEMPTATION_PAYOFF * nc + PUNISH_PAYOFF * nd;
 				 break;
-		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n",ss, numsteps,nc,nd);
+		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n", state, numsteps, nc, nd);
 				 exit(1);
 				 break;
 	}
-	//pay = calculate_payoff(ss,nc,nd);
 
 	return pay;
 }
@@ -693,8 +666,10 @@ void file_initialization(void)
 	char output_file_freq[200];
 	int i,j,k;
 
-	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_CONF_%d_%ld_prof.dat",
-							TEMPTATION_PAYOFF,SUCKER_PAYOFF,LSIZE,1.0-NUM_DEFECTS/((float)LL),NUM_CONF,seed);
+	sprintf(output_file_freq,"data/T%.2f_S_%.2f_LSIZE%d_rho%.5f_ALPHA_SHARE%.2f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+                              TEMPTATION_PAYOFF, SUCKER_PAYOFF, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), ALPHA_SHARE,
+                              P_DIFFUSION, NUM_CONF, seed);
+
 	freq = fopen(output_file_freq,"w");
 
 	fprintf(freq,"# Diffusive and Diluted Spatial Games - 2D ");//- V%s\n",VERSION);
