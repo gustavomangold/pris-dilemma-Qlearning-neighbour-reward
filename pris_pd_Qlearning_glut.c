@@ -126,7 +126,7 @@ void count_neighbours    (int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state       (int *s, int lsize, int initialstate, double probc, double probd);
 
-double get_mean_neighbours_payoff(float *payoff, int *s, int index);
+double get_mean_neighbours_payoff(int *s, int index);
 double pd_payoff                 (int *s, int state, int ii);
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -266,7 +266,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***********************************************************************
 *                       Get neighbours patoff                          *
 ***********************************************************************/
-double get_mean_neighbours_payoff(float *payoff, int *s, int index){
+double get_mean_neighbours_payoff(int *s, int index){
     int k;
 
     double total_payoff  = 0;
@@ -373,9 +373,9 @@ double pd_payoff(int *s, int state, int ii)
 
 	switch (state)
 	{
-		case C: pay = REWARD_PAYOFF * nc + SUCKER_PAYOFF * nd;
+		case C: pay = REWARD_PAYOFF * nc; //+ SUCKER_PAYOFF * nd;
 				 break;
-		case D: pay = TEMPTATION_PAYOFF * nc + PUNISH_PAYOFF * nd;
+		case D: pay = TEMPTATION_PAYOFF * nc; //+ PUNISH_PAYOFF * nd; both payoffs are 0
 				 break;
 		default: printf("ERROR: ss = %d numsteps = %ld %d %d\n", state, numsteps, nc, nd);
 				 exit(1);
@@ -391,7 +391,6 @@ double pd_payoff(int *s, int state, int ii)
 void random_choice_cant_move(int site, int *new_action, int *new_action_index)
 {
 	// Chooses an integer in [0,NUM_ACTIONS)
-
 	*new_action_index = (int) (FRANDOM1 * (NUM_ACTIONS - 1));
 	*new_action = ACTIONS[*new_action_index];
 
@@ -453,7 +452,6 @@ void find_maximum_Q_value(int chosen_site, int state_index, int *maxQ_action, in
 			*maxQ_ind = i;
 		}
 
-	// *maxQ_state = (*maxQ_ind == Cindex ? C : D);
 	*maxQ_action = ACTIONS[*maxQ_ind];
 
 	return;
@@ -483,7 +481,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	total_payoff = 0;
 	total_reward = 0;
 
-	for (i=num_empty_sites; i < LL; ++i)
+	for (i = num_empty_sites; i < LL; ++i)
 		stemp[empty_matrix[i]] = s[empty_matrix[i]];
 
 	for (j=0; j < LL; ++j)
@@ -508,7 +506,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 
 				s[chosen_site] = new_action;
 
-				double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
+				double neighbours_payoff = get_mean_neighbours_payoff(s, chosen_site);
 
 				final_payoff = pd_payoff(s, new_action, chosen_site);
 
@@ -532,39 +530,16 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 
 				final_payoff = pd_payoff(s, initial_s, chosen_site);
 
-				// this is done in order to differentiate when
-				// the player moves or not
-				// if it moves, update the q_value referent to moving
-				// if not, update the value referent to mantaining its
-				// previous state
 				if (moved) {
 					find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
-					double neighbours_payoff = get_mean_neighbours_payoff(payoff, s, chosen_site);
+					double neighbours_payoff = get_mean_neighbours_payoff(s, chosen_site);
 
 					reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
 
 					Q[chosen_site][initial_s_index][new_action_index] +=  ALPHA * (reward + GAMMA * new_maxQ
 											- Q[chosen_site][initial_s_index][new_action_index] );
 				}
-
-				// with this, cooperation increases
-				// don't know why, but it makes it differ
-				// with static case (?)
-
-				/*else {
-				    reward = initial_payoff;
-
-					find_maximum_Q_value_cant_move(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
-
-					Q[chosen_site][initial_s_index][initial_s_index] +=  ALPHA * (reward + GAMMA*new_maxQ
-											- Q[chosen_site][initial_s_index][initial_s_index] );
-
-				}*/
-
-				//reward = final_payoff;
-
-				//find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
 			}
 			payoff[chosen_index]  = final_payoff;
 			total_payoff         += final_payoff;
@@ -572,7 +547,6 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		} // if(s1!=0)
 	}
 
-	//printf("%f, %f\n", total_payoff / LL, total_reward / LL);
 
 	for (i=num_empty_sites; i< LL; ++i)
 	{
