@@ -198,8 +198,8 @@ extern void simulation(void)
 
 					++numsteps;
 				}
-				number_coop_average[i]  += num_c;
-				number_def_average[i]  += num_d;
+				number_coop_average[i]        += num_c;
+				number_def_average[i]         += num_d;
 				number_coop_to_def_average[i] += num_cd+num_dc;
 
 				for (k = num_empty_sites; k < LL; ++k)
@@ -214,8 +214,8 @@ extern void simulation(void)
 				{
 					for (j=i+1; j < MEASURES; ++j)
 					{
-						number_coop_average[j]  += num_c;
-						number_def_average[j]  += num_d;
+						number_coop_average[j]        += num_c;
+						number_def_average[j]         += num_d;
 						number_coop_to_def_average[j] += 0.0;
 
 						for(l=0; l<NUM_STATES; ++l)
