@@ -462,7 +462,7 @@ void find_maximum_Q_value(int chosen_site, int state_index, int *maxQ_action, in
 void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_emp)
 {
 	//int stemp[LL];
-	int j,chosen_index, chosen_site; //,i
+	int i, j, chosen_index, chosen_site;
 	int initial_s_index, new_action_index;
 	int initial_s;
 
@@ -548,7 +548,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	}
 
 
-	/*for (i=num_empty_sites; i< LL; ++i)
+	for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
 
@@ -556,15 +556,15 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		{
 			case C: {
 						++num_c;
-						if  (stemp[s1] == D) ++num_dc;
+						//if  (stemp[s1] == D) ++num_dc;
 					 }	break;
 			case D: {
 						++num_d;
-						if  (stemp[s1] == C) ++num_cd;
+						//if  (stemp[s1] == C) ++num_cd;
 
 					} break;
 		}
-	}*/
+	}
 
 #ifdef USEGFX
     if (numsteps % 1000 == 0)
@@ -685,9 +685,9 @@ void file_initialization(void)
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
 	#ifdef DIFFUSE
-	   fprintf(freq,"#t  f_c  f_d  f_ac Qdd  Qdc Qdm Qcd Qcc Qcm\n");
+	   fprintf(freq,"#t  f_c  f_d  Qdd  Qdc Qdm Qcd Qcc Qcm\n");
 	#else
-	   fprintf(freq,"#t  f_c  f_d  f_ac Qdd  Qdc Qcd Qcc\n");
+	   fprintf(freq,"#t  f_c  f_d  Qdd  Qdc Qcd Qcc\n");
 	#endif
 
 	for (i=0;i<MEASURES;++i)

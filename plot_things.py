@@ -88,7 +88,7 @@ index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames_dynamic, index_col = False)
 
-    key = float(filename.split('T')[1][0:3])
+    key = float(filename.split('rho')[1][0:3])
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
@@ -102,7 +102,7 @@ for filename in glob.glob(path + 'T*.dat'):
     #plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
     #plot_data_values(filename, data, colnames_dynamic, colors, 'cooperation')
 
-    alpha_share = float(filename.split('ALPHA_SHARE')[1][:3])
+    alpha_share = float(filename.split('T')[1][:3])
     mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
 
     if key in (cooperation_dict.keys()):
@@ -116,7 +116,7 @@ for filename in glob.glob(path + 'T*.dat'):
 
     index += 1
 
-plot_heatmap(labels_to_plot, x_axis_to_plot, cooperation_plot)
+#plot_heatmap(labels_to_plot, x_axis_to_plot, cooperation_plot)
 
 plt.style.use('ggplot')
 color = itertools.cycle(("#0E56FD", "#6135ca", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
@@ -125,16 +125,15 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if not (10 * key % 2):
-        color_both_plots = next(color)
-        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-            label = r'$b = $' + str(key), color = color_both_plots)
+    color_both_plots = next(color)
+    plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
+        label = r'$\rho = $' + str(key), color = color_both_plots)
     #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
     index += 1
 
 plt.title('')
 plt.ylim(0, 1.01)
-plt.xlabel(r'$s_r$')
+plt.xlabel(r'$b$')
 plt.ylabel(r'$f_c$')
 plt.legend()
 plt.legend(loc='lower right')
