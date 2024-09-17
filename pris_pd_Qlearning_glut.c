@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 1;
+ const int NUM_CONF       = 10;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -33,7 +33,7 @@
  const double PROB_C	  = 0.5;
  const double PROB_D      = 1.0 - PROB_C;
 
- const int    TOTALSTEPS  = 5000;
+ const int    TOTALSTEPS  = 20000;
 
  #define    MEASURES   1000
  #define    NUM_NEIGH  4
@@ -87,7 +87,7 @@
  double         P_DIFFUSION;
 
  unsigned long  num_empty_sites;
- unsigned long  seed, numsteps, num_c, num_cd, num_dc, num_d;
+ unsigned long  seed, numsteps, num_c, num_d; //  num_cd, num_dc,
  unsigned long  NUM_DEFECTS;
 
  /****** Q-Learning parameteres **********/
@@ -99,7 +99,7 @@
  ***************************************************************************/
 
  double         Q[LL][NUM_STATES][NUM_ACTIONS];
- double         number_coop_average[MEASURES], number_def_average[MEASURES], number_coop_to_def_average[MEASURES];
+ double         number_coop_average[MEASURES], number_def_average[MEASURES];//, number_coop_to_def_average[MEASURES];
  double         average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS];
 
  int            s[LL];
@@ -197,7 +197,7 @@ extern void simulation(void)
 				}
 				number_coop_average[i]        += num_c;
 				number_def_average[i]         += num_d;
-				number_coop_to_def_average[i] += num_cd+num_dc;
+				//number_coop_to_def_average[i] += num_cd + num_dc;
 
 				for (k = num_empty_sites; k < LL; ++k)
 				{
@@ -212,7 +212,7 @@ extern void simulation(void)
 					{
 						number_coop_average[j]        += num_c;
 						number_def_average[j]         += num_d;
-						number_coop_to_def_average[j] += 0.0;
+						//number_coop_to_def_average[j] += 0.0;
 
 						for(l=0; l<NUM_STATES; ++l)
 							for(m=0; m<NUM_ACTIONS; ++m)
@@ -227,14 +227,14 @@ extern void simulation(void)
 		{
 			number_coop_average[i]        /= NUM_CONF;
 			number_def_average[i]         /= NUM_CONF;
-			number_coop_to_def_average[i] /= NUM_CONF;
+			//number_coop_to_def_average[i] /= NUM_CONF;
 
 			for(l = 0; l < NUM_STATES; ++l)
 				for(m = 0; m < NUM_ACTIONS; ++m)
 					average_Q_table[i][l][m] /= NUM_CONF;
 
-			fprintf(freq, "%ld %.6f %.6f %.6f ", t[i], number_coop_average[i], number_def_average[i],
-			        number_coop_to_def_average[i]);
+			fprintf(freq, "%ld %.6f %.6f ", t[i], number_coop_average[i], number_def_average[i]);
+			        //number_coop_to_def_average[i]);
 
 			for(l = 0; l < NUM_STATES; ++l)
 				for(m = 0; m < NUM_ACTIONS; ++m)
@@ -461,8 +461,8 @@ void find_maximum_Q_value(int chosen_site, int state_index, int *maxQ_action, in
  ***************************************************************************/
 void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_emp)
 {
-	int stemp[LL];
-	int i,j,chosen_index, chosen_site;
+	//int stemp[LL];
+	int j,chosen_index, chosen_site; //,i
 	int initial_s_index, new_action_index;
 	int initial_s;
 
@@ -472,8 +472,8 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	int new_action, future_action, future_action_index;
 
 	num_c  = 0;
-	num_cd = 0;
-	num_dc = 0;
+	//num_cd = 0;
+	//num_dc = 0;
 	num_d  = 0;
 
 	reward       = 0;
@@ -481,8 +481,8 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	total_payoff = 0;
 	total_reward = 0;
 
-	for (i = num_empty_sites; i < LL; ++i)
-		stemp[empty_matrix[i]] = s[empty_matrix[i]];
+	/*for (i = num_empty_sites; i < LL; ++i)
+		stemp[empty_matrix[i]] = s[empty_matrix[i]];*/
 
 	for (j=0; j < LL; ++j)
     {
@@ -548,7 +548,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	}
 
 
-	for (i=num_empty_sites; i< LL; ++i)
+	/*for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
 
@@ -564,7 +564,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 
 					} break;
 		}
-	}
+	}*/
 
 #ifdef USEGFX
     if (numsteps % 1000 == 0)
@@ -695,7 +695,7 @@ void file_initialization(void)
 		number_coop_average[i]  = 0.0;
 		number_def_average[i]   = 0.0;
 
-		number_coop_to_def_average[i] = 0.0;
+		//number_coop_to_def_average[i] = 0.0;
 
 		for(j = 0; j < NUM_STATES; ++j)
 			for(k = 0; k < NUM_ACTIONS; ++k)
@@ -714,7 +714,7 @@ void initialization(void)
 	numsteps  = 0;
 	num_c     = 0;
 	num_d     = 0;
-	num_cd    = 0;
+	//num_cd    = 0;
 
 	initial_state(s, LSIZE, INITIALSTATE, PROB_C, PROB_D);
 
