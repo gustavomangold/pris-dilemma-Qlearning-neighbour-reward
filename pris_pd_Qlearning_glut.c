@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 1;
+ const int NUM_CONF       = 10;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -33,7 +33,7 @@
  const double PROB_C	  = 0.5;
  const double PROB_D      = 1.0 - PROB_C;
 
- const int    TOTALSTEPS  = 1000;
+ const int    TOTALSTEPS  = 20000;
 
  #define    MEASURES   1000
  #define    NUM_NEIGH  4
