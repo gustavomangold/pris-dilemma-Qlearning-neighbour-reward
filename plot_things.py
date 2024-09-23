@@ -22,7 +22,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     #plt.gca().invert_yaxis()
 
-    plt.tricontourf(x, y, z, levels = 100, cmap = 'jet_r')
+    plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
     cbar = plt.colorbar()
     cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
 
@@ -76,9 +76,8 @@ path = './data/'
 colors   = ['red', 'blue', 'cyan', 'black', 'green', 'grey', 'hotpink']
 
 cooperation_dict = {}
-colnames_dynamic = ['t',  'f_c',  'f_d',  'f_ac',  'Qdd',  'Qdc', 'Qdm', 'Qcd', 'Qcc', 'Qcm']
-colnames_static = ['t',  'f_c',  'f_d',  'f_ac',  'Q0d', 'Q0c', 'Q1d', 'Q1c', 'Q2d',
-            'Q2c', 'Q3d', 'Q3c', 'Q4d', 'Q4c']
+colnames_dynamic = ['t',  'f_c',  'f_d',  'Qdd',  'Qdc', 'Qdm', 'Qcd', 'Qcc', 'Qcm']
+colnames_static = ['t',  'f_c',  'f_d',  'Qdd', 'Qdc', 'Qcd', 'Qcc']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -88,7 +87,7 @@ index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames_dynamic, index_col = False)
 
-    key = float(filename.split('rho')[1][0:3])
+    key = float(filename.split('rho')[1][0:4])
 
     data['mean_coop'] = data['f_c'] / (data['f_d'] + data['f_c'])
 
@@ -102,16 +101,19 @@ for filename in glob.glob(path + 'T*.dat'):
     #plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
     #plot_data_values(filename, data, colnames_dynamic, colors, 'cooperation')
 
-    alpha_share = float(filename.split('T')[1][:3])
+    x_variable  = float(filename.split('T')[1][:4])
     mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
 
+    if np.random.rand() < 0.1:
+        plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
+
     if key in (cooperation_dict.keys()):
-        cooperation_dict[key].append([alpha_share, float(mean_coop)])
+        cooperation_dict[key].append([x_variable, float(mean_coop)])
     else:
-        cooperation_dict[key] = [[alpha_share, float(mean_coop)]]
+        cooperation_dict[key] = [[x_variable, float(mean_coop)]]
 
     labels_to_plot.append(key)
-    x_axis_to_plot.append(alpha_share)
+    x_axis_to_plot.append(x_variable)
     cooperation_plot.append(mean_coop)
 
     index += 1
@@ -132,7 +134,7 @@ for key in sorted(cooperation_dict.keys()):
     index += 1
 
 plt.title('')
-plt.ylim(0, 1.01)
+plt.ylim(0.25, .6)
 plt.xlabel(r'$b$')
 plt.ylabel(r'$f_c$')
 plt.legend()
@@ -140,6 +142,8 @@ plt.legend(loc='lower right')
 plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
 
 plt.close()
+plt.clf()
+plt.cla()
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):

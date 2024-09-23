@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 10;
+ const int NUM_CONF       = 1;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -33,7 +33,7 @@
  const double PROB_C	  = 0.5;
  const double PROB_D      = 1.0 - PROB_C;
 
- const int    TOTALSTEPS  = 20000;
+ const int    TOTALSTEPS  = 1000;
 
  #define    MEASURES   1000
  #define    NUM_NEIGH  4
@@ -110,7 +110,7 @@
  unsigned long  right[LL], left[LL], top[LL], down[LL], neigh[LL][NUM_NEIGH];
  unsigned long  empty_matrix[LL], which_empty[LL];
 
- FILE           *freq, *fconf;
+ FILE           *freq, *fconf, *freq_s;
 
  unsigned long int rseed;
  const gsl_rng_type * T;
@@ -163,12 +163,12 @@ unsigned long int set_gsl_rng(void)
 extern void simulation(void)
 {
     //indexes
-	int config_index;
-	int i, j, k, l, m;
+    int config_index;
+    int i, j, k, l, m;
 
-	static int CONFIG_INDEX = 0;
+    static int CONFIG_INDEX = 0;
 
-	double epsilon_to_decay;
+    double epsilon_to_decay;
 
    while(CONFIG_INDEX < NUM_CONF) //FOR GLUT
    {
@@ -301,7 +301,7 @@ int rand_diffusion(int *s1, int *s, float p_diffusion,unsigned long *empty_matri
 		i    = (int)((double)(NUM_NEIGH) * FRANDOM1); // choose random direction
 		s2   = neigh[*s1][i];
 
-		if (! s[s2]) // test if chosen direction is empty, !0 = 1
+		if (s[s2] == 0)
 		{
 			s[s2]  = s[*s1]; // Change strategy
 			s[*s1] = 0;
@@ -551,6 +551,12 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 	for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
+		#ifdef SAVE_SNAPSHOTS
+    		if (i % LSIZE == 0){
+    		 fprintf(freq_s, "\n");
+    		}
+		    fprintf(freq_s, "%d ", s[s1]);
+		#endif
 
 		switch (s[s1])
 		{
@@ -566,8 +572,12 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		}
 	}
 
+#ifdef SAVE_SNAPSHOTS
+  fprintf(freq_s, "\n");
+#endif
+
 #ifdef USEGFX
-    if (numsteps % 1000 == 0)
+    if (numsteps % 200 == 0)
 	    view2d(LSIZE, s, numsteps, TOTALSTEPS, t, num_c, num_d, NUM_DEFECTS);
 	//syst_return = system("sleep 1");
 #endif
@@ -604,7 +614,7 @@ int main(int argc, char **argv)
         {
     		TEMPTATION_PAYOFF = atof(argv[1]);
     		NUM_DEFECTS       = atof(argv[2]);
-    		ALPHA_SHARE       = atof(argv[2]);
+    		ALPHA_SHARE       = atof(argv[3]);
     	}
 	#endif
 
@@ -618,7 +628,7 @@ int main(int argc, char **argv)
 
 #ifdef USEGFX
 	char window_title[50];
-	sprintf(window_title, "Prisoners Dilemma - Q learning");
+	//sprintf(window_title, "Prisoners Dilemma - Q learning");
 	initialize_glut_display(simulation, &argc, argv, window_title);
 #else
 	simulation();
@@ -692,8 +702,8 @@ void file_initialization(void)
 
 	for (i=0;i<MEASURES;++i)
 	{
-		number_coop_average[i]  = 0.0;
-		number_def_average[i]   = 0.0;
+		number_coop_average[i] = 0.0;
+		number_def_average[i]  = 0.0;
 
 		//number_coop_to_def_average[i] = 0.0;
 
@@ -701,6 +711,19 @@ void file_initialization(void)
 			for(k = 0; k < NUM_ACTIONS; ++k)
 				average_Q_table[i][j][k] = 0.0;
 	}
+
+	#ifdef SAVE_SNAPSHOTS
+	    char save_snapshots[200];
+
+        sprintf(save_snapshots,"data/snapshots_T%.2f_S_%.2f_LSIZE%d_rho%.5f_ALPHA_SHARE%.2f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+                        TEMPTATION_PAYOFF, SUCKER_PAYOFF, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), ALPHA_SHARE,
+                        P_DIFFUSION, NUM_CONF, seed);
+
+    	freq_s = fopen(save_snapshots, "w");
+
+    	fprintf(freq_s,"# Diffusive and Diluted Spatial Games - 2D \n");//- V%s\n",VERSION);
+    	fprintf(freq_s,"# Snapshots separated by enter. For use only for specific parameters, don't run the flag on simulations.\n");
+    #endif
 
 	return;
 }
