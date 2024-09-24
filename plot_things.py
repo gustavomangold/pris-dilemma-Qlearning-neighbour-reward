@@ -76,8 +76,9 @@ path = './data/'
 colors   = ['red', 'blue', 'cyan', 'black', 'green', 'grey', 'hotpink']
 
 cooperation_dict = {}
-colnames_dynamic = ['t',  'f_c',  'f_d',  'Qdd',  'Qdc', 'Qdm', 'Qcd', 'Qcc', 'Qcm']
-colnames_static = ['t',  'f_c',  'f_d',  'Qdd', 'Qdc', 'Qcd', 'Qcc']
+variance_dict    = {}
+colnames_dynamic = ['t',  'f_c',  'f_d', 'Qdd',  'Qdc', 'Qdm', 'Qcd', 'Qcc', 'Qcm']
+colnames_static  = ['t',  'f_c',  'f_d', 'Qdd', 'Qdc', 'Qcd', 'Qcc']
 
 labels_to_plot = []
 x_axis_to_plot = []
@@ -98,19 +99,27 @@ for filename in glob.glob(path + 'T*.dat'):
         plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
         plot_data_values(filename, data, colnames_dynamic, colors, 'cooperation')
 """
-    #plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
-    #plot_data_values(filename, data, colnames_dynamic, colors, 'cooperation')
+
+    """reward_series = data['r_m']
+    plt.plot(np.array(data['t']), np.array(reward_series) / key, label = key)
+    plt.legend()
+    plt.savefig('reward-time_series.png', dpi = 400)
+    plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
+    plot_data_values(filename, data, colnames_dynamic, colors, 'cooperation')"""
 
     x_variable  = float(filename.split('T')[1][:4])
     mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
+    var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-    if np.random.rand() < 0.1:
-        plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')
+    '''if np.random.rand() < 0.1:
+        plot_data_values(filename, data, colnames_dynamic, colors, 'q-table')'''
 
     if key in (cooperation_dict.keys()):
         cooperation_dict[key].append([x_variable, float(mean_coop)])
+        variance_dict[key].append([x_variable, float(var_coop)])
     else:
         cooperation_dict[key] = [[x_variable, float(mean_coop)]]
+        variance_dict[key] = [[x_variable, float(var_coop)]]
 
     labels_to_plot.append(key)
     x_axis_to_plot.append(x_variable)
@@ -120,8 +129,8 @@ for filename in glob.glob(path + 'T*.dat'):
 
 #plot_heatmap(labels_to_plot, x_axis_to_plot, cooperation_plot)
 
-plt.style.use('ggplot')
-color = itertools.cycle(("#0E56FD", "#6135ca", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
+plt.style.use('seaborn-v0_8-ticks')
+color = itertools.cycle(("#0E56FD", "#6135ca", "#606b9b", "#ca23dc",  "#e61976", "#d02f6a", "#ff1611"))
 
 marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
@@ -137,13 +146,27 @@ plt.title('')
 plt.ylim(0.25, .6)
 plt.xlabel(r'$b$')
 plt.ylabel(r'$f_c$')
-plt.legend()
-plt.legend(loc='lower right')
+plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
 plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
 
 plt.close()
 plt.clf()
 plt.cla()
+
+index = 0
+for key in sorted(variance_dict.keys()):
+    if key in [0.1, 0.5, 1.]:
+        color_both_plots = next(color)
+        plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$\rho = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
+
+plt.title('')
+plt.xlabel(r'$b$')
+plt.ylabel(r'$\sigma ^2$')
+#plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
+plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
 
 """index = 0
 for filename in glob.glob(path + 'T*.dat'):

@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 10;
+ const int NUM_CONF       = 1;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -85,6 +85,7 @@
  float          TEMPTATION_PAYOFF;
 
  double         P_DIFFUSION;
+ double         mean_reward;
 
  unsigned long  num_empty_sites;
  unsigned long  seed, numsteps, num_c, num_d; //  num_cd, num_dc,
@@ -99,7 +100,7 @@
  ***************************************************************************/
 
  double         Q[LL][NUM_STATES][NUM_ACTIONS];
- double         number_coop_average[MEASURES], number_def_average[MEASURES];//, number_coop_to_def_average[MEASURES];
+ double         number_coop_average[MEASURES], number_def_average[MEASURES], reward_average[MEASURES];//, number_coop_to_def_average[MEASURES];
  double         average_Q_table[MEASURES][NUM_STATES][NUM_ACTIONS];
 
  int            s[LL];
@@ -121,12 +122,12 @@
 ***************************************************************************/
 void file_initialization (void);
 void initialization      (void);
-void local_dynamics      (int *s, unsigned long *empty_matrix, unsigned long *which_emp);
+void local_dynamics      (int *s, float *payoff, unsigned long *empty_matrix, unsigned long *which_emp);
 void count_neighbours    (int *s, int ii, int *nc, int *nd);
 void determine_neighbours(unsigned long neigh[][NUM_NEIGH]);
 void initial_state       (int *s, int lsize, int initialstate, double probc, double probd);
 
-double get_mean_neighbours_payoff(int *s, int index);
+double get_mean_neighbours_payoff(int *s, float *payoff, int index);
 double pd_payoff                 (int *s, int state, int ii);
 
 unsigned long empty_site(unsigned long ll, int *nn,
@@ -191,12 +192,13 @@ extern void simulation(void)
 					   EPSILON = epsilon_to_decay;
 					}
 
-					local_dynamics(s, empty_matrix, which_empty);
+					local_dynamics(s, payoff, empty_matrix, which_empty);
 
 					++numsteps;
 				}
 				number_coop_average[i]        += num_c;
 				number_def_average[i]         += num_d;
+				reward_average[i]             += mean_reward; //substitute reward
 				//number_coop_to_def_average[i] += num_cd + num_dc;
 
 				for (k = num_empty_sites; k < LL; ++k)
@@ -212,6 +214,7 @@ extern void simulation(void)
 					{
 						number_coop_average[j]        += num_c;
 						number_def_average[j]         += num_d;
+						reward_average[j]             += mean_reward;//substitute reward
 						//number_coop_to_def_average[j] += 0.0;
 
 						for(l=0; l<NUM_STATES; ++l)
@@ -227,13 +230,14 @@ extern void simulation(void)
 		{
 			number_coop_average[i]        /= NUM_CONF;
 			number_def_average[i]         /= NUM_CONF;
+			reward_average[i]             /= NUM_CONF;
 			//number_coop_to_def_average[i] /= NUM_CONF;
 
 			for(l = 0; l < NUM_STATES; ++l)
 				for(m = 0; m < NUM_ACTIONS; ++m)
 					average_Q_table[i][l][m] /= NUM_CONF;
 
-			fprintf(freq, "%ld %.6f %.6f ", t[i], number_coop_average[i], number_def_average[i]);
+			fprintf(freq, "%ld %.6f %.6f %.6f ", t[i], number_coop_average[i], number_def_average[i], reward_average[i]);
 			        //number_coop_to_def_average[i]);
 
 			for(l = 0; l < NUM_STATES; ++l)
@@ -266,7 +270,7 @@ void determine_neighbours(unsigned long neigh[][(int) NUM_NEIGH])
 /***********************************************************************
 *                       Get neighbours patoff                          *
 ***********************************************************************/
-double get_mean_neighbours_payoff(int *s, int index){
+double get_mean_neighbours_payoff(int *s, float *payoff, int index){
     int k;
 
     double total_payoff  = 0;
@@ -276,7 +280,7 @@ double get_mean_neighbours_payoff(int *s, int index){
 	{
         if (s[neigh[index][k]] != 0)
 		{
-			total_payoff += pd_payoff(s, s[neigh[index][k]], neigh[index][k]);
+			total_payoff += pd_payoff(s, s[neigh[index][k]], neigh[index][k]); //payoff[neigh[index][k]];
 			total_players++;
 		}
      }
@@ -459,7 +463,7 @@ void find_maximum_Q_value(int chosen_site, int state_index, int *maxQ_action, in
 /***************************************************************************
  *                           Local Dynamics                                *
  ***************************************************************************/
-void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_emp)
+void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigned long *which_emp)
 {
 	//int stemp[LL];
 	int i, j, chosen_index, chosen_site;
@@ -506,7 +510,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 
 				s[chosen_site] = new_action;
 
-				double neighbours_payoff = get_mean_neighbours_payoff(s, chosen_site);
+				double neighbours_payoff = get_mean_neighbours_payoff(s, payoff, chosen_site);
 
 				final_payoff = pd_payoff(s, new_action, chosen_site);
 
@@ -533,7 +537,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 				if (moved) {
 					find_maximum_Q_value(chosen_site, initial_s_index, &future_action, &future_action_index, &new_maxQ);
 
-					double neighbours_payoff = get_mean_neighbours_payoff(s, chosen_site);
+					double neighbours_payoff = get_mean_neighbours_payoff(s, payoff, chosen_site);
 
 					reward = ALPHA_SHARE * neighbours_payoff + (1 - ALPHA_SHARE) * final_payoff;
 
@@ -547,6 +551,7 @@ void local_dynamics (int *s, unsigned long *empty_matrix, unsigned long *which_e
 		} // if(s1!=0)
 	}
 
+	mean_reward = total_reward / LL;
 
 	for (i=num_empty_sites; i< LL; ++i)
 	{
@@ -695,9 +700,9 @@ void file_initialization(void)
 	//fprintf(freq,"#t  f_c  f_d  f_ac  Qcc  Qcd Qdc Qdd P\n");
 
 	#ifdef DIFFUSE
-	   fprintf(freq,"#t  f_c  f_d  Qdd  Qdc Qdm Qcd Qcc Qcm\n");
+	   fprintf(freq,"#t  f_c  f_d r_m Qdd  Qdc Qdm Qcd Qcc Qcm\n");
 	#else
-	   fprintf(freq,"#t  f_c  f_d  Qdd  Qdc Qcd Qcc\n");
+	   fprintf(freq,"#t  f_c  f_d r_m Qdd  Qdc Qcd Qcc\n");
 	#endif
 
 	for (i=0;i<MEASURES;++i)
@@ -734,9 +739,10 @@ void initialization(void)
 {
 	int i,j,k;
 
-	numsteps  = 0;
-	num_c     = 0;
-	num_d     = 0;
+	numsteps    = 0;
+	num_c       = 0;
+	num_d       = 0;
+	mean_reward = 0;
 	//num_cd    = 0;
 
 	initial_state(s, LSIZE, INITIALSTATE, PROB_C, PROB_D);
