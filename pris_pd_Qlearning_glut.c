@@ -490,7 +490,7 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 
 	for (j=0; j < LL; ++j)
     {
-		chosen_index = (int)(num_empty_sites + FRANDOM1*(LL-num_empty_sites));
+		chosen_index = (int)(num_empty_sites + FRANDOM1 * (LL - num_empty_sites));
 		chosen_site  = empty_matrix[chosen_index];
 
 		initial_s = s[chosen_site];
