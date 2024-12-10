@@ -17,14 +17,15 @@ def plot_heatmap(x_list, y_list, cooperation_list):
     y = np.array(y_list)
     z = np.array(cooperation_list)
 
-    plt.xlabel(r'$b$')
-    plt.ylabel(r'$s_r$')
+    plt.xlabel(r'$p_d$')
+    plt.ylabel(r'$\rho$')
 
     #plt.gca().invert_yaxis()
 
-    plt.tricontourf(x, y, z, levels = 70, cmap = 'jet_r')
+
+    plt.tricontourf(x, y, z, levels = 100, cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks(np.arange(round(min(z), 1), round(max(z), 1), .1))
+    cbar.set_ticks([0.4, 0.45, 0.51])
 
     plt.savefig('heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
     plt.clf()
@@ -100,7 +101,7 @@ for filename in glob.glob(path + 'T*.dat'):
     #plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     #plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
 
-    x_variable  = float(filename.split('T')[1][:4])
+    x_variable  = float(filename.split('P_DIFFUSION')[1][:4])
     mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
     var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
@@ -120,7 +121,9 @@ for filename in glob.glob(path + 'T*.dat'):
 
     index += 1
 
-plot_heatmap(labels_to_plot, x_axis_to_plot, cooperation_plot)
+plt.rc('axes', labelsize = 16)
+
+plot_heatmap(x_axis_to_plot, labels_to_plot,  cooperation_plot)
 
 plt.style.use('seaborn-v0_8-ticks')
 
@@ -128,33 +131,38 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    color_both_plots = next(color)
-    plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
-        label = r'$\rho = $' + str(key), color = color_both_plots)
-    #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
-    index += 1
+    if key in  [.1, .5, 1]:
+        color_both_plots = next(color)
+        plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$\rho = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
 
 plt.title('')
-plt.ylim(0.25, .6)
-plt.xlabel(r'$b$')
+plt.ylim(0.25, .62)
+plt.xlim(-0.01, 1.01)
+plt.xlabel(r'$p_d$')
 plt.ylabel(r'$f_c$')
-plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
-plt.savefig('cooperation_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')
+plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5, prop={'size': 12})
+plt.savefig('cooperation_versus_b-per_occupation.png', dpi=600, bbox_inches='tight')
 
 plt.close()
 plt.clf()
 plt.cla()
 
+plt.ticklabel_format(axis='y', style='sci', scilimits=(-5,-5))
+
 index = 0
 for key in sorted(variance_dict.keys()):
-    color_both_plots = next(color)
-    plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
-        label = r'$\rho = $' + str(key), color = color_both_plots)
-    #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
-    index += 1
+    if key in [.1, .5, 1]:
+        color_both_plots = next(color)
+        plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
+            label = r'$\rho = $' + str(key), color = color_both_plots)
+        #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
+        index += 1
 
 plt.title('')
-plt.xlabel(r'$b$')
+plt.xlabel(r'$p_d$')
 plt.ylabel(r'$\sigma ^2$')
 #plt.legend(loc='upper right', ncol = 2, edgecolor = 'black', framealpha=0.5)
 plt.savefig('variance_versus_b-per_occupation.png', dpi=400, bbox_inches='tight')

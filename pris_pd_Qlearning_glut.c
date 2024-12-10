@@ -24,7 +24,7 @@
  /***************************************************************************
   *                          Constant Declarations                           *
   ***************************************************************************/
- const int NUM_CONF       = 1;
+ const int NUM_CONF       = 10;
  #define   LSIZE           100 //200
  #define   LL              (LSIZE*LSIZE)
 
@@ -82,6 +82,8 @@
  *                      Variable Declarations                               *
  ***************************************************************************/
 
+ int            SNAPSHOT_TEMPORAL_DIFFERENCE;
+
  float          TEMPTATION_PAYOFF;
 
  double         P_DIFFUSION;
@@ -135,6 +137,8 @@ unsigned long empty_site(unsigned long ll, int *nn,
 
 void update_empty_sites(unsigned long s1, unsigned long s2,
                         unsigned long *which_empty, unsigned long *empty_matrix);
+
+void save_snapshots(int step, int *s);
 
 int odd(int x);
 
@@ -225,6 +229,10 @@ extern void simulation(void)
 				}
 			}
 		}
+
+		#ifdef SAVESNAPSHOTS
+            save_snapshots(numsteps, s);
+        #endif
 
 		for(i = 0; i < MEASURES; ++i)
 		{
@@ -426,6 +434,26 @@ void find_maximum_Q_value_cant_move(int chosen_site, int state_index, int *maxQ_
 }
 
 /***************************************************************************
+ *                             Save snapshots                              *
+ ***************************************************************************/
+void save_snapshots(int step, int *s){
+    char output_snaps_freq[200];
+	int i;
+
+	sprintf(output_snaps_freq, "data/snapshots/SnapshotStep%d_T%.2f_S_%.2f_LSIZE%d_rho%.5f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
+                                 step, TEMPTATION_PAYOFF, SUCKER_PAYOFF, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL),
+                                 P_DIFFUSION, NUM_CONF, seed);
+	fconf = fopen(output_snaps_freq, "w");
+
+	for (i = 0; i < (LL-1); ++i){
+	   fprintf(fconf,"%d,", s[i]);
+	}
+	fprintf(fconf,"%d", s[LL-1]);
+	fclose(fconf);
+    return;
+}
+
+/***************************************************************************
  *                           Random choice                                 *
  ***************************************************************************/
 void random_choice(int site, int *new_action, int *new_action_index)
@@ -556,12 +584,6 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 	for (i=num_empty_sites; i< LL; ++i)
 	{
 		int s1 = empty_matrix[i];
-		#ifdef SAVE_SNAPSHOTS
-    		if (i % LSIZE == 0){
-    		 fprintf(freq_s, "\n");
-    		}
-		    fprintf(freq_s, "%d ", s[s1]);
-		#endif
 
 		switch (s[s1])
 		{
@@ -577,8 +599,10 @@ void local_dynamics (int *s, float *payoff, unsigned long *empty_matrix, unsigne
 		}
 	}
 
-#ifdef SAVE_SNAPSHOTS
-  fprintf(freq_s, "\n");
+#ifdef SAVESNAPSHOTS
+    if (numsteps % SNAPSHOT_TEMPORAL_DIFFERENCE == 0){
+        save_snapshots(numsteps, s);
+    }
 #endif
 
 #ifdef USEGFX
@@ -610,17 +634,33 @@ int main(int argc, char **argv)
             ALPHA_SHARE       = atof(argv[4]);
     	}
 	#else
-    	if (argc != 4)
-    	{
-    		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and ALPHA_SHARE \n");
-    		exit(1);
-    	}
-    	else
-        {
-    		TEMPTATION_PAYOFF = atof(argv[1]);
-    		NUM_DEFECTS       = atof(argv[2]);
-    		ALPHA_SHARE       = atof(argv[3]);
-    	}
+	    #ifdef SAVESNAPSHOTS
+			if (argc != 5)
+               	{
+              		printf("\nThe program must be called with 4 parameters, T, NUM_DEFECTS, P_DIFFUSION and SNAPSHOTS_TEMPORAL_DIFFERENCE\n");
+              		exit(1);
+               	}
+               	else
+                {
+              		TEMPTATION_PAYOFF  = atof(argv[1]);
+              		NUM_DEFECTS = atof(argv[2]);
+              		ALPHA_SHARE = atof(argv[3]);
+
+                    SNAPSHOT_TEMPORAL_DIFFERENCE = atof(argv[4]);
+               	}
+		#else
+           	if (argc != 4)
+           	{
+          		printf("\nThe program must be called with 3 parameters, T, NUM_DEFECTS and ALPHA_SHARE \n");
+          		exit(1);
+           	}
+           	else
+                {
+          		TEMPTATION_PAYOFF = atof(argv[1]);
+          		NUM_DEFECTS       = atof(argv[2]);
+          		ALPHA_SHARE       = atof(argv[3]);
+           	}
+        #endif
 	#endif
 
 	seed = set_gsl_rng();	 //Start GSL Random number generator
@@ -716,19 +756,6 @@ void file_initialization(void)
 			for(k = 0; k < NUM_ACTIONS; ++k)
 				average_Q_table[i][j][k] = 0.0;
 	}
-
-	#ifdef SAVE_SNAPSHOTS
-	    char save_snapshots[200];
-
-        sprintf(save_snapshots,"data/snapshots_T%.2f_S_%.2f_LSIZE%d_rho%.5f_ALPHA_SHARE%.2f_P_DIFFUSION%.2f_CONF_%d_%ld_prof.dat",
-                        TEMPTATION_PAYOFF, SUCKER_PAYOFF, LSIZE, 1.0 - NUM_DEFECTS / ((float) LL), ALPHA_SHARE,
-                        P_DIFFUSION, NUM_CONF, seed);
-
-    	freq_s = fopen(save_snapshots, "w");
-
-    	fprintf(freq_s,"# Diffusive and Diluted Spatial Games - 2D \n");//- V%s\n",VERSION);
-    	fprintf(freq_s,"# Snapshots separated by enter. For use only for specific parameters, don't run the flag on simulations.\n");
-    #endif
 
 	return;
 }
