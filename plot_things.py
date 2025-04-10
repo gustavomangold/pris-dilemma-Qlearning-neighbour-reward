@@ -25,7 +25,7 @@ def plot_heatmap(x_list, y_list, cooperation_list):
 
     plt.tricontourf(x, y, z, levels = 100, cmap = 'jet_r')
     cbar = plt.colorbar()
-    cbar.set_ticks([0.4, 0.45, 0.51])
+    cbar.set_ticks([0.32, 0.4, .48])
 
     plt.savefig('heatmap_coop_versus_prob-diff_and_alpha-share.png', dpi=400, bbox_inches='tight')
     plt.clf()
@@ -76,6 +76,8 @@ colnames_static  = ['t',  'f_c',  'f_d', 'r_m', 'Qdd', 'Qdc', 'Qcd', 'Qcc']
 labels_to_plot = []
 x_axis_to_plot = []
 cooperation_plot = []
+filled_plot_x = []
+filled_plot_y = []
 
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
@@ -114,6 +116,10 @@ for filename in glob.glob(path + 'T*.dat'):
     else:
         cooperation_dict[key] = [[x_variable, float(mean_coop)]]
         variance_dict[key] = [[x_variable, float(var_coop)]]
+    
+    if key == 1.:
+        filled_plot_x.append(x_variable)
+        filled_plot_y.append(mean_coop)
 
     labels_to_plot.append(key)
     x_axis_to_plot.append(x_variable)
@@ -131,12 +137,13 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if key in  [.1, .5, 1]:
+    if key in [.1, .3,.5,.7,.9]:
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
             label = r'$\rho = $' + str(key), color = color_both_plots)
         #plt.plot(*zip(*cooperation_dict[key]), linewidth = 0.5, alpha=0.4, color = color_both_plots)
         index += 1
+plt.plot(filled_plot_x, filled_plot_y, linewidth = 0.5, alpha=0.9, linestyle ="dashed", color = "yellow", label = r"$\rho = 1$")
 
 plt.title('')
 plt.ylim(0.25, .62)
@@ -154,7 +161,8 @@ plt.ticklabel_format(axis='y', style='sci', scilimits=(-5,-5))
 
 index = 0
 for key in sorted(variance_dict.keys()):
-    if key in [.1, .5, 1]:
+    if key in [.1, .3,.5,.7,.9, 1]:
+        color_both_plots = next(color)
         color_both_plots = next(color)
         plt.scatter(*zip(*variance_dict[key]),  marker = next(marker), linestyle='',
             label = r'$\rho = $' + str(key), color = color_both_plots)
