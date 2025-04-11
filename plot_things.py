@@ -79,6 +79,8 @@ cooperation_plot = []
 filled_plot_x = []
 filled_plot_y = []
 
+already_used_params = []
+
 index = 0
 for filename in glob.glob(path + 'T*.dat'):
     data = pd.read_csv(filename, comment = '#', delimiter = ' ', names = colnames_dynamic, index_col = False)
@@ -102,30 +104,34 @@ for filename in glob.glob(path + 'T*.dat'):
     plt.savefig('reward-time_series' + str(key) + '.png', dpi = 400)"""
     #plot_data_values(filename, data, colnames_dynamic, color, 'q-table')
     #plot_data_values(filename, data, colnames_dynamic, color, 'cooperation')
-
+        
     x_variable  = float(filename.split('P_DIFFUSION')[1][:4])
-    mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
-    var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
+    params = [x_variable, key]
+    if float(filename.split('T')[1][:4]) == 1.4 and (params not in already_used_params):
+        mean_coop   = np.mean(data[['mean_coop']].to_numpy()[-100:])
+        var_coop    = np.var(data[['mean_coop']].to_numpy()[-100:])
 
-    '''if np.random.rand() < 0.1:
-        plot_data_values(filename, data, colnames_dynamic, color, 'q-table')'''
+        '''if np.random.rand() < 0.1:
+            plot_data_values(filename, data, colnames_dynamic, color, 'q-table')'''
 
-    if key in (cooperation_dict.keys()):
-        cooperation_dict[key].append([x_variable, float(mean_coop)])
-        variance_dict[key].append([x_variable, float(var_coop)])
-    else:
-        cooperation_dict[key] = [[x_variable, float(mean_coop)]]
-        variance_dict[key] = [[x_variable, float(var_coop)]]
-    
-    if key == 1.:
-        filled_plot_x.append(x_variable)
-        filled_plot_y.append(mean_coop)
+        if key in (cooperation_dict.keys()):
+            cooperation_dict[key].append([x_variable, float(mean_coop)])
+            variance_dict[key].append([x_variable, float(var_coop)])
+        else:
+            cooperation_dict[key] = [[x_variable, float(mean_coop)]]
+            variance_dict[key] = [[x_variable, float(var_coop)]]
+        
+        if key == 1.:
+            filled_plot_x.append(x_variable)
+            filled_plot_y.append(mean_coop)
 
-    labels_to_plot.append(key)
-    x_axis_to_plot.append(x_variable)
-    cooperation_plot.append(mean_coop)
+        labels_to_plot.append(key)
+        x_axis_to_plot.append(x_variable)
+        cooperation_plot.append(mean_coop)
 
-    index += 1
+        already_used_params.append(params)
+
+        index += 1
 
 plt.rc('axes', labelsize = 16)
 
@@ -137,7 +143,7 @@ marker = itertools.cycle((',', 'P', 'p', '.', '*', 'X', 'P', 'p', 'o'))
 
 index = 0
 for key in sorted(cooperation_dict.keys()):
-    if key in [.1, .3,.5,.7,.9]:
+    if key in [.3 ,.5,.9]:
         color_both_plots = next(color)
         plt.scatter(*zip(*cooperation_dict[key]),  marker = next(marker), linestyle='',
             label = r'$\rho = $' + str(key), color = color_both_plots)
